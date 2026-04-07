@@ -1,8 +1,50 @@
 import { Phone, Mail, MapPin, Clock } from "lucide-react";
 import { useState } from "react";
+import { supabase } from "@/integrations/supabase/client";
+import { toast } from "sonner";
 
 const Contact = () => {
   const [submitted, setSubmitted] = useState(false);
+  const [loading, setLoading] = useState(false);
+
+  const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
+    e.preventDefault();
+    setLoading(true);
+
+    const form = e.currentTarget;
+    const formData = new FormData(form);
+
+    const fullName = (formData.get("fullName") as string)?.trim();
+    const email = (formData.get("email") as string)?.trim();
+    const phone = (formData.get("phone") as string)?.trim() || null;
+    const practiceArea = (formData.get("practiceArea") as string) || null;
+    const message = (formData.get("message") as string)?.trim() || null;
+
+    if (!fullName || !email) {
+      toast.error("Please fill in all required fields.");
+      setLoading(false);
+      return;
+    }
+
+    const { error } = await supabase.from("contact_submissions").insert({
+      full_name: fullName,
+      email,
+      phone,
+      practice_area: practiceArea,
+      message,
+    });
+
+    if (error) {
+      console.error("Submission error:", error);
+      toast.error("Something went wrong. Please try again.");
+      setLoading(false);
+      return;
+    }
+
+    setSubmitted(true);
+    setLoading(false);
+    toast.success("Your message has been sent!");
+  };
 
   return (
     <section id="contact" className="py-24 bg-card">
@@ -45,10 +87,7 @@ const Contact = () => {
             ))}
           </div>
 
-          <form
-            onSubmit={(e) => { e.preventDefault(); setSubmitted(true); }}
-            className="space-y-5"
-          >
+          <form onSubmit={handleSubmit} className="space-y-5">
             {submitted ? (
               <div className="bg-primary/5 border border-gold/30 rounded-lg p-8 text-center">
                 <h3 className="font-heading text-xl font-semibold text-foreground mb-2">Thank You!</h3>
@@ -59,23 +98,27 @@ const Contact = () => {
                 <div className="grid sm:grid-cols-2 gap-5">
                   <input
                     type="text"
+                    name="fullName"
                     placeholder="Full Name"
                     required
                     className="w-full px-4 py-3 border border-border rounded bg-background text-foreground text-sm placeholder:text-muted-foreground focus:outline-none focus:border-gold transition-colors"
                   />
                   <input
                     type="tel"
+                    name="phone"
                     placeholder="Phone Number"
                     className="w-full px-4 py-3 border border-border rounded bg-background text-foreground text-sm placeholder:text-muted-foreground focus:outline-none focus:border-gold transition-colors"
                   />
                 </div>
                 <input
                   type="email"
+                  name="email"
                   placeholder="Email Address"
                   required
                   className="w-full px-4 py-3 border border-border rounded bg-background text-foreground text-sm placeholder:text-muted-foreground focus:outline-none focus:border-gold transition-colors"
                 />
                 <select
+                  name="practiceArea"
                   className="w-full px-4 py-3 border border-border rounded bg-background text-foreground text-sm focus:outline-none focus:border-gold transition-colors"
                   defaultValue=""
                 >
@@ -89,14 +132,16 @@ const Contact = () => {
                 </select>
                 <textarea
                   rows={4}
+                  name="message"
                   placeholder="Tell us about your case..."
                   className="w-full px-4 py-3 border border-border rounded bg-background text-foreground text-sm placeholder:text-muted-foreground focus:outline-none focus:border-gold transition-colors resize-none"
                 />
                 <button
                   type="submit"
-                  className="w-full bg-gold text-accent-foreground py-3.5 rounded text-sm font-semibold uppercase tracking-wider hover:bg-gold-light transition-colors"
+                  disabled={loading}
+                  className="w-full bg-gold text-accent-foreground py-3.5 rounded text-sm font-semibold uppercase tracking-wider hover:bg-gold-light transition-colors disabled:opacity-50"
                 >
-                  Request Consultation
+                  {loading ? "Sending..." : "Request Consultation"}
                 </button>
               </>
             )}
