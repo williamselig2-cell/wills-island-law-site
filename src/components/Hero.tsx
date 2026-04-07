@@ -17,7 +17,7 @@ const Hero = () => {
           <div className="w-20 h-0.5 bg-gold mx-auto mb-8" />
           <h1 className="font-heading text-4xl md:text-6xl lg:text-7xl font-bold text-primary-foreground mb-6 leading-tight">
             Trusted Legal Counsel in the{" "}
-            <span className="text-gold">Thousand Islands</span>
+            <span className="text-gold">Ithaca</span>
           </h1>
           <p className="text-primary-foreground/80 text-lg md:text-xl mb-10 max-w-2xl mx-auto font-light leading-relaxed">
             Dedicated to protecting your rights and achieving the best outcomes
